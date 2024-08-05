@@ -49,7 +49,7 @@ const AboutPage = (props) => {
         <Container size={'large'} spacing={'min'}>
           <div className={styles.detailContainer} ref={historyRef}>
             <p>
-              Founded in 1860, PalmGulf is an innovative British brand with a
+              Founded in 1860, Palm Gulf is an innovative British brand with a
               contemporary edge. We make timeless everyday luxury clothing.
             </p>
             <br />
@@ -93,7 +93,7 @@ const AboutPage = (props) => {
             <h3>Sustainability</h3>
             <div id={'#sustainability'} ref={sustainabilityRef}>
               <p>
-                Our founder, Thomas Hill, had both an eye for quality and a
+                Our founder, Mr. Sagga, had both an eye for quality and a
                 desire to innovate. As well as using the finest fibres such as
                 Sea Island cotton, cashmere and silk, he invented his own
                 fabrics. Sunspel continues this commitment to innovation today
