@@ -13,7 +13,7 @@ export default {
     const { method } = request;
 
     const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': 'https://www.palmgulf.com',
       'Access-Control-Allow-Methods': 'GET,HEAD,POST,OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, X-Cart-Id'
     };
