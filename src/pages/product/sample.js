@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import * as styles from './sample.module.css';
-
+import { addToCart } from '../../pages/cart-core';
 import Accordion from '../../components/Accordion';
 import AdjustItem from '../../components/AdjustItem';
 import Button from '../../components/Button';
@@ -80,7 +80,10 @@ const ProductPage = (props) => {
               <div className={styles.actionContainer}>
                 <div className={styles.addToButtonContainer}>
                   <Button
-                    onClick={() => showNotification()}
+                    onClick={() => {
+                      showNotification();
+                      addToCart({ name: "T-shirt", price: "$25" });
+                    }}
                     fullWidth
                     level={'primary'}
                   >

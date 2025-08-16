@@ -50,6 +50,7 @@ const CartPage = (props) => {
           </div>
         </Container>
       </div>
+      <div id="cart-items"></div>
       <Footer />
     </div>
   );
