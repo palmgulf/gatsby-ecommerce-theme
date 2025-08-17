@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, navigate } from 'gatsby';
-
+import { useCart } from '../../context/cartContext';
 import Button from '../Button';
 import FormInputField from '../FormInputField/FormInputField';
 import CurrencyFormatter from '../CurrencyFormatter';
@@ -10,6 +10,9 @@ import * as styles from './OrderSummary.module.css';
 const OrderSummary = (props) => {
   const [coupon, setCoupon] = useState('');
   const [giftCard, setGiftCard] = useState('');
+  const { cart } = useCart();
+  const total = cart.reduce((sum, item) => sum + (item.price || 0), 0);
+
 
   return (
     <div className={styles.root}>
@@ -19,7 +22,7 @@ const OrderSummary = (props) => {
           <div className={styles.labelContainer}>
             <span>Subtotal</span>
             <span>
-              <CurrencyFormatter amount={440} appendZero />
+              <CurrencyFormatter amount={total} appendZero />
             </span>
           </div>
           <div className={styles.labelContainer}>
@@ -27,10 +30,10 @@ const OrderSummary = (props) => {
             <span>---</span>
           </div>
           <div className={styles.labelContainer}>
-            <span>Tax</span>
-            <span>
+            <span>Tax & shipping willbe calculated at checkout</span>
+            {/* <span>
               <CurrencyFormatter amount={0} appendZero />
-            </span>
+            </span> */}
           </div>
         </div>
         <div className={styles.couponContainer}>
@@ -52,7 +55,7 @@ const OrderSummary = (props) => {
         <div className={styles.totalContainer}>
           <span>Total: </span>
           <span>
-            <CurrencyFormatter amount={440} appendZero />
+            <CurrencyFormatter amount={total} appendZero />
           </span>
         </div>
       </div>

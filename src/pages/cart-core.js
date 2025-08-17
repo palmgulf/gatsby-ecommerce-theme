@@ -1,52 +1,90 @@
+const API_URL = 'https://cart-api.rough-haze-95d9.workers.dev'; // Update if changed
+const cartKey = 'cart';
+const cartIdKey = 'cartId';
 
-// Simple cart manager
-const cartKey = 'palmgulf_cart';
-
+// Get or generate unique cart/user ID
 function getCartId() {
-    let id = localStorage.getItem('cartId');
+    let id = localStorage.getItem(cartIdKey);
     if (!id) {
         id = crypto.randomUUID();
-        localStorage.setItem('cartId', id);
+        localStorage.setItem(cartIdKey, id);
     }
     return id;
 }
 
-function getCart() {
-    return JSON.parse(localStorage.getItem(cartKey) || '[]');
+// Fetch latest cart from backend (source of truth)
+export async function loadCartFromBackend() {
+    const cartId = getCartId();
+    try {
+        const response = await fetch(API_URL, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Cart-Id': cartId
+            }
+        });
+
+        if (!response.ok) {
+            console.warn('Failed to load cart from backend:', response.status);
+            return;
+        }
+
+        const cart = await response.json();
+        localStorage.setItem(cartKey, JSON.stringify(cart));
+        renderCart();
+    } catch (err) {
+        console.error('Error loading cart:', err);
+    }
 }
 
-function saveCart(cart) {
-    localStorage.setItem(cartKey, JSON.stringify(cart));
-    renderCart();
-    syncCartWithBackend(cart);
-}
-
-
-export function addToCart(product) {
-    console.log('Adding to cart:', product);
+// Add item to cart
+export async function addToCart(product) {
+    console.log("adding", product);
     if (!product || !product.name || !product.price) {
-        console.error('Invalid product:', product);
+        console.error('Invalid product format:', product);
         return;
     }
-    // Add product to cart
-    const cart = getCart();
+
+    // Ensure there's a productId
+    if (!product.productId) {
+        product.productId = crypto.randomUUID(); // fallback for now
+    }
+
+    const cart = getLocalCart();
     cart.push(product);
-    saveCart(cart);
+    await saveCart(cart);
 }
 
-function removeFromCart(index) {
-    const cart = getCart();
-    cart.splice(index, 1);
-    saveCart(cart);
+// Save cart locally + sync to backend
+async function saveCart(cart) {
+    localStorage.setItem(cartKey, JSON.stringify(cart));
+
+    const cartId = getCartId();
+    try {
+        await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Cart-Id': cartId
+            },
+            body: JSON.stringify(cart)
+        });
+    } catch (err) {
+        console.error('Error syncing cart to backend:', err);
+    }
+
+    renderCart();
 }
 
+// Render cart UI
 export function renderCart() {
-    const cart = getCart();
     const container = document.getElementById('cart-items');
     if (!container) {
-        console.warn('renderCard() skipped: #Cart-items not found');
+        console.warn('Cart container not found');
         return;
     }
+
+    const cart = getLocalCart();
     container.innerHTML = '';
 
     if (cart.length === 0) {
@@ -54,41 +92,71 @@ export function renderCart() {
         return;
     }
 
-    cart.forEach((item, index) => {
+    let total = 0;
+
+    cart.forEach(item => {
+        const price = parseFloat(item.price) || 0;
+        total += price;
+
         const el = document.createElement('div');
         el.className = 'cart-item';
-        el.innerHTML = `<p><strong>${item.name}</strong> - ${item.price}</p>
-                        <button onclick="removeFroCart(${index})">Remove</button>`;
+        el.innerHTML = `
+            <p><strong>${item.name}</strong> - $${price.toFixed(2)}</p>
+            <button class="remove-button" data-id="${item.productId}">Remove</button>
+        `;
         container.appendChild(el);
+    });
+
+    // Cart total (optional)
+    let totalDiv = document.getElementById('cart-total');
+    if (!totalDiv) {
+        totalDiv = document.createElement('div');
+        totalDiv.id = 'cart-total';
+        container.appendChild(totalDiv);
+    }
+    totalDiv.innerHTML = `<p><strong>Total:</strong> $${total.toFixed(2)}</p>`;
+
+    // Add click handlers
+    container.querySelectorAll('.remove-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const id = button.getAttribute('data-id');
+            removeFromCart(id);
+        });
     });
 }
 
-async function syncCartWithBackend(cart) {
+
+// Remove item from cart by productId
+export async function removeFromCart(productId) {
+    if (!productId) return;
+
     const cartId = getCartId();
+
     try {
-        await fetch('https://cart-api.rough-haze-95d9.workers.dev',{ //'/api/cart', {
+        await fetch(`${API_URL}/remove`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json',
-                'X-Cart-Id': cartId
-             },
-            body: JSON.stringify(cart)
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId: cartId, productId })
         });
+
+        await loadCartFromBackend(); // reload latest state after removal
     } catch (err) {
-        console.error('Failed to sync cart:', err);
+        console.error('Failed to remove item from cart:', err);
     }
 }
 
-function sendCartToBackend() {
-    const cart = getCart();
-    fetch('/api/cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cart)
-    })
-    .then(response => response.json())
-    .then(data => console.log('Cart sent successfully:', data))
-    .catch(error => console.error('Error sending cart:', error));
+// Local helper to parse cart
+function getLocalCart() {
+    try {
+        const raw = localStorage.getItem(cartKey);
+        return raw ? JSON.parse(raw) : [];
+    } catch (err) {
+        console.error('Invalid cart in localStorage:', err);
+        return [];
+    }
 }
 
-
-document.addEventListener('DOMContentLoaded', renderCart);
+// Auto-render cart on page load
+document.addEventListener('DOMContentLoaded', loadCartFromBackend);

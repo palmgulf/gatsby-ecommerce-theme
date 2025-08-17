@@ -1,26 +1,30 @@
 import { Link } from 'gatsby';
 import React from 'react';
-
+import { useCart } from '../context/cartContext';
 import Brand from '../components/Brand';
 import CartItem from '../components/CartItem';
 import Container from '../components/Container';
 import Footer from '../components/Footer';
 import Icon from '../components/Icons/Icon';
 import OrderSummary from '../components/OrderSummary';
+import Layout from '../components/Layout';
+
 
 import * as styles from './cart.module.css';
 
 const CartPage = (props) => {
-  const sampleCartItem = {
-    image: '/products/pdp1.jpeg',
-    alt: '',
-    name: 'Lambswool Crew Neck Jumper',
-    price: 220,
-    color: 'Anthracite Melange',
-    size: 'XS',
-  };
-
+  // const sampleCartItem = {
+  //   image: '/products/pdp1.jpeg',
+  //   alt: '',
+  //   name: 'Lambswool Crew Neck Jumper',
+  //   price: 220,
+  //   color: 'Anthracite Melange',
+  //   size: 'XS',
+  // };
+  const { cart, removeFromCart } = useCart();
+  console.log('Cart contents:', cart);
   return (
+    // <Layout disableMiniCart />>
     <div>
       <div className={styles.contentContainer}>
         <Container size={'large'} spacing={'min'}>
@@ -42,17 +46,26 @@ const CartPage = (props) => {
             <h3>My Bag</h3>
             <div className={styles.cartContainer}>
               <div className={styles.cartItemsContainer}>
-                <CartItem {...sampleCartItem} />
-                <CartItem {...sampleCartItem} />
+                {cart.length > 0 ? ( 
+                      cart.map((item, index) => (
+                        <CartItem key={index} {...item} />
+                      ))
+                ) : (
+                  <p>Your cart is empty.</p>
+                    )
+                }
+                
+                 {/* <CartItem {...sampleCartItem} />
+                 <CartItem {...sampleCartItem} />  */}
               </div>
               <OrderSummary />
             </div>
           </div>
         </Container>
       </div>
-      <div id="cart-items"></div>
       <Footer />
     </div>
+    // </Layout>
   );
 };
 

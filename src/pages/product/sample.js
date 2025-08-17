@@ -1,6 +1,7 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import * as styles from './sample.module.css';
-import { addToCart } from '../../pages/cart-core';
+import { useCart } from '../../context/cartContext';
+import { loadCartFromBackend } from '../../pages/cart-core';
 import Accordion from '../../components/Accordion';
 import AdjustItem from '../../components/AdjustItem';
 import Button from '../../components/Button';
@@ -20,6 +21,8 @@ import { navigate } from 'gatsby';
 
 import AddItemNotificationContext from '../../context/AddItemNotificationProvider';
 
+
+
 const ProductPage = (props) => {
   const ctxAddItemNotification = useContext(AddItemNotificationContext);
   const showNotification = ctxAddItemNotification.showNotification;
@@ -31,6 +34,9 @@ const ProductPage = (props) => {
   );
   const [activeSize, setActiveSize] = useState(sampleProduct.sizeOptions[0]);
   const suggestions = generateMockProductData(4, 'woman');
+  const { addToCart, cart } = useCart();
+  console.log("cart content;:: ",cart);
+
 
   return (
     <Layout>
@@ -82,7 +88,20 @@ const ProductPage = (props) => {
                   <Button
                     onClick={() => {
                       showNotification();
-                      addToCart({ name: "T-shirt", price: "$25" });
+                      //addToCart(product);
+                      addToCart({
+                        productId: `sku-${sampleProduct.productCode}-${activeSize}`,
+                        name: 'Lambswool Crew Neck Jumper',
+                        price: 25,
+                        image: '/products/pdp1.jpeg',
+                        alt: 'Lambswool Jumper',
+                        color: typeof activeSwatch === 'object' ? activeSwatch.title : activeSwatch,
+                        // color: activeSwatch,
+                        size: activeSize,    // ✅ correct
+                        quantity: qty || 1,
+                      });
+                      console.log('activeSwatch.title:');
+
                     }}
                     fullWidth
                     level={'primary'}
@@ -167,5 +186,7 @@ const ProductPage = (props) => {
     </Layout>
   );
 };
+
+
 
 export default ProductPage;
