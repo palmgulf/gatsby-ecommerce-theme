@@ -1,7 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import * as styles from './sample.module.css';
 import { useCart } from '../../context/cartContext';
-import { loadCartFromBackend } from '../../pages/cart-core';
 import Accordion from '../../components/Accordion';
 import AdjustItem from '../../components/AdjustItem';
 import Button from '../../components/Button';

@@ -9,7 +9,6 @@ import QuickView from '../QuickView';
 import * as styles from './CartItem.module.css';
 import { navigate } from 'gatsby';
 import { toOptimizedImage } from '../../helpers/general';
-import { removeFromCart } from '../../pages/cart-core';
 
 const CartItem = (props) => {
   const { removeFromCart } = useCart();
