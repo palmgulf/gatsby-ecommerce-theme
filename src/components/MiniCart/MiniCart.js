@@ -8,16 +8,20 @@ import MiniCartItem from '../MiniCartItem';
 import * as styles from './MiniCart.module.css';
 
 const MiniCart = () => {
-  const { cart, removeFromCart } = useCart(); // ✅ Hook is called at the top level
+  // ✅ Always call hook at the top level
+  const cartContext = useCart();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true); // ✅ This just controls rendering, not hook behavior
+    setIsClient(true);
   }, []);
 
-  if (!isClient) return null; // Avoid rendering on server
+  // ✅ Prevent SSR rendering
+  if (!isClient || !cartContext) return null;
 
-  const totalPrice = cart?.reduce(
+  const { cart, removeFromCart } = cartContext;
+
+  const totalPrice = cart.reduce(
     (acc, item) => acc + item.price * (item.quantity || 1),
     0
   );
@@ -29,7 +33,7 @@ const MiniCart = () => {
       </div>
 
       <div className={styles.cartItemsContainer}>
-        {cart?.length > 0 ? (
+        {cart.length > 0 ? (
           cart.map((item, index) => (
             <MiniCartItem
               key={index}
