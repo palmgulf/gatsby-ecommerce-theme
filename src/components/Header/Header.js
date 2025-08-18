@@ -1,8 +1,8 @@
 import React, { useState, useEffect, createRef } from 'react';
+import loadable from '@loadable/component';
+
 import { Link, navigate } from 'gatsby';
-
 import { isAuth } from '../../helpers/general';
-
 import AddNotification from '../AddNotification';
 import Brand from '../Brand';
 import Container from '../Container';
@@ -11,9 +11,11 @@ import Drawer from '../Drawer';
 import ExpandedMenu from '../ExpandedMenu';
 import FormInputField from '../FormInputField/FormInputField';
 import Icon from '../Icons/Icon';
-import MiniCart from '../MiniCart';
+// import MiniCart from '../MiniCart';
 import MobileNavigation from '../MobileNavigation';
 import * as styles from './Header.module.css';
+
+const MiniCart = loadable(() => import('../MiniCart'), { ssr: false });
 
 const Header = (prop) => {
   const [showMiniCart, setShowMiniCart] = useState(false);
