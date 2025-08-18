@@ -9,7 +9,22 @@ const CartContext = createContext({
 });
 
 
-export const useCart = () => useContext(CartContext);
+export const useCart = () => {
+  try {
+    const context = useContext(CartContext);
+    if (!context) throw new Error('CartContext not available');
+    return context;
+  } catch (err) {
+    // SSR fallback
+    return {
+      cart: [],
+      loading: false,
+      addToCart: () => {},
+      removeFromCart: () => {},
+      clearCart: () => {},
+    };
+  }
+};
 
 
 export const CartProvider = ({ children }) => {

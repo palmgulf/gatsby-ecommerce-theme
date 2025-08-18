@@ -7,7 +7,11 @@ import MiniCartItem from '../MiniCartItem';
 import * as styles from './MiniCart.module.css';
 
 const MiniCart = () => {
-  const { cart = [], removeFromCart = () => {} } = useCart(); // Always call hook!
+  
+  // const { cart = [], removeFromCart = () => {} } = useCart(); // Always call hook!
+  const cartContext = useCart();
+  const cart = cartContext?.cart || [];
+  const removeFromCart = cartContext?.removeFromCart || (() => {});
   const [isClient, setIsClient] = useState(false);
 
   // This flag makes sure UI only renders on client
@@ -15,7 +19,18 @@ const MiniCart = () => {
     setIsClient(true);
   }, []);
 
-  if (!isClient) return null; // Avoid SSR render
+   // 1. Ensure SSR output is IDENTICAL to initial client render:
+  if (!isClient) {
+    return (
+      <div id="cart-items" style={{ visibility: 'hidden' }}>
+        {/* Same structure: wrapping div only */}
+      </div>
+    );
+  }
+
+  console.log("Cart during SSR render:", cart);
+
+  
 
   const totalPrice = cart.reduce(
     (acc, item) => acc + item.price * (item.quantity || 1),
