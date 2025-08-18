@@ -1,24 +1,21 @@
-import { Link, navigate } from 'gatsby';
 import React, { useEffect, useState } from 'react';
 import { useCart } from '../../context/cartContext';
+import { Link, navigate } from 'gatsby';
 import Button from '../Button';
 import CurrencyFormatter from '../CurrencyFormatter';
 import MiniCartItem from '../MiniCartItem';
-
 import * as styles from './MiniCart.module.css';
 
 const MiniCart = () => {
-  const cartContext = useCart();  // Always call hook!
+  const { cart = [], removeFromCart = () => {} } = useCart(); // Always call hook!
   const [isClient, setIsClient] = useState(false);
 
+  // This flag makes sure UI only renders on client
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // On SSR, cartContext may be undefined, or empty, so:
-  if (!isClient || !cartContext) return null;  // Render nothing on SSR
-
-  const { cart, removeFromCart } = cartContext;
+  if (!isClient) return null; // Avoid SSR render
 
   const totalPrice = cart.reduce(
     (acc, item) => acc + item.price * (item.quantity || 1),
@@ -30,7 +27,6 @@ const MiniCart = () => {
       <div className={styles.titleContainer}>
         <h4>My Bag</h4>
       </div>
-
       <div className={styles.cartItemsContainer}>
         {cart.length > 0 ? (
           cart.map((item, index) => (
@@ -44,7 +40,6 @@ const MiniCart = () => {
           <p>Your cart is empty.</p>
         )}
       </div>
-
       <div className={styles.summaryContainer}>
         <div className={styles.summaryContent}>
           <div className={styles.totalContainer}>
