@@ -8,15 +8,15 @@ import MiniCartItem from '../MiniCartItem';
 import * as styles from './MiniCart.module.css';
 
 const MiniCart = () => {
-  const cartContext = useCart(); // ✅ Safe hook usage
+  const cartContext = useCart();  // Always call hook!
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // ✅ Prevent SSR crash
-  if (!isClient || !cartContext) return null;
+  // On SSR, cartContext may be undefined, or empty, so:
+  if (!isClient || !cartContext) return null;  // Render nothing on SSR
 
   const { cart, removeFromCart } = cartContext;
 
