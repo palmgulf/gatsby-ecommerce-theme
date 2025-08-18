@@ -5,7 +5,7 @@ const CartContext = createContext();
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
-    // Safe fallback to prevent SSR crash
+    // SSR-safe fallback
     return {
       cart: [],
       loading: false,
@@ -17,87 +17,87 @@ export const useCart = () => {
   return context;
 };
 
-
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [cartId, setCartId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Generate or get existing cart ID (from localStorage)
+  // Safe client-side check
+  const isClient = typeof window !== 'undefined';
+
+  // Get or create cart ID and local cart (client-only)
   useEffect(() => {
+    if (!isClient) return;
+
     let id = localStorage.getItem('cartId');
     if (!id) {
-      id = crypto.randomUUID();
+      id = (crypto?.randomUUID?.() || Math.random().toString(36).substring(2));
       localStorage.setItem('cartId', id);
     }
     setCartId(id);
 
-    // Restore cart from localStorage (temporary fix until backend loads)
-  const storedCart = localStorage.getItem('cart');
-  if (storedCart) {
-    try {
-      setCart(JSON.parse(storedCart));
-    } catch (err) {
-      console.error('Error parsing stored cart', err);
+    const storedCart = localStorage.getItem('cart');
+    if (storedCart) {
+      try {
+        setCart(JSON.parse(storedCart));
+      } catch (err) {
+        console.error('Error parsing stored cart', err);
+      }
     }
-    }
-  }, []);
+  }, [isClient]);
 
-  // Load cart from backend on cartId ready
+  // Load from backend
   useEffect(() => {
-    if (!cartId) return;
+    if (!cartId || !isClient) return;
+
     setLoading(true);
     fetch('https://cart-api.rough-haze-95d9.workers.dev', {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json', 'X-Cart-Id': cartId },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Cart-Id': cartId,
+      },
     })
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error('Failed to load cart');
         return res.json();
       })
-      .then(data => {
-      const updatedCart = Array.isArray(data)
-        ? data
-        : Array.isArray(data.cart)
-        ? data.cart
-        : [];
-      setCart(updatedCart);
-      localStorage.setItem('cart', JSON.stringify(updatedCart));
-    })
-    .catch(err => {
-      console.error('Error loading cart from backend:', err);
-      // Fallback: use localStorage or leave cart as-is
-    })
-    .finally(() => {
-      setLoading(false);
-    });
-}, [cartId]);
+      .then((data) => {
+        const updatedCart = Array.isArray(data)
+          ? data
+          : Array.isArray(data.cart)
+          ? data.cart
+          : [];
+        setCart(updatedCart);
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
+      })
+      .catch((err) => {
+        console.error('Error loading cart from backend:', err);
+      })
+      .finally(() => setLoading(false));
+  }, [cartId, isClient]);
 
-  // Sync cart to backend whenever cart changes
+  // Sync cart to backend
   useEffect(() => {
-    if (!cartId) return;
-    localStorage.setItem('cart', JSON.stringify(cart)); // ✅ keep local copy
+    if (!cartId || !isClient) return;
+
+    localStorage.setItem('cart', JSON.stringify(cart));
     fetch('https://cart-api.rough-haze-95d9.workers.dev', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Cart-Id': cartId },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Cart-Id': cartId,
+      },
       body: JSON.stringify(cart),
-    }).catch(err => {
+    }).catch((err) => {
       console.error('Failed to sync cart:', err);
     });
-  }, [cart, cartId]);
+  }, [cart, cartId, isClient]);
 
-  // Cart operations
-  const addToCart = (product) => {
-    setCart(prev => [...prev, product]);
-  };
-
-  const removeFromCart = (productId) => {
-    setCart(prev => prev.filter(item => item.productId !== productId));
-  };
-
-  const clearCart = () => {
-    setCart([]);
-  };
+  const addToCart = (product) => setCart((prev) => [...prev, product]);
+  const removeFromCart = (productId) =>
+    setCart((prev) => prev.filter((item) => item.productId !== productId));
+  const clearCart = () => setCart([]);
 
   return (
     <CartContext.Provider
