@@ -2,7 +2,21 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const CartContext = createContext();
 
-export const useCart = () => useContext(CartContext);
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    // Safe fallback to prevent SSR crash
+    return {
+      cart: [],
+      loading: false,
+      addToCart: () => {},
+      removeFromCart: () => {},
+      clearCart: () => {},
+    };
+  }
+  return context;
+};
+
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
