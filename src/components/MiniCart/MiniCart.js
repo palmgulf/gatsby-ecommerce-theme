@@ -8,17 +8,14 @@ import MiniCartItem from '../MiniCartItem';
 import * as styles from './MiniCart.module.css';
 
 const MiniCart = () => {
-  // ✅ Always call hooks at top level
   const { cart, removeFromCart } = useCart();
   const [isClient, setIsClient] = useState(false);
 
-  // ✅ Set client flag once mounted
+  // Ensure this component only renders in the browser
   useEffect(() => {
     setIsClient(true);
-    console.log('MiniCart updated:', cart);
-  }, [cart]);
+  }, []);
 
-  // ✅ Prevent rendering on the server
   if (!isClient) return null;
 
   const totalPrice = cart.reduce(
